@@ -1,0 +1,284 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stone Paper Scissors - Game</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Stone Paper Scissors</h1>
+            <p class="subtitle">Challenge the Computer</p>
+        </header>
+
+        <div class="game-wrapper">
+            <!-- Choice Selection Page -->
+            <div id="choice-page" class="page-section active">
+                <h2>Choose Your Move</h2>
+                <div class="choices">
+                    <button class="choice-btn stone" data-choice="stone">
+                        <span class="choice-emoji">🪨</span>
+                        <span class="choice-name">Stone</span>
+                    </button>
+                    <button class="choice-btn paper" data-choice="paper">
+                        <span class="choice-emoji">📄</span>
+                        <span class="choice-name">Paper</span>
+                    </button>
+                    <button class="choice-btn scissors" data-choice="scissors">
+                        <span class="choice-emoji">✂️</span>
+                        <span class="choice-name">Scissors</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Game Result Page -->
+            <div id="result-page" class="page-section hidden">
+                <div class="result-page-content">
+                    <!-- Computer Hand (LEFT) -->
+                    <div class="computer-hand-section">
+                        <p class="side-label">Computer</p>
+                        <div class="hand-display" id="computer-hand">✊</div>
+                    </div>
+
+                    <!-- VS Display -->
+                    <div class="vs-display">
+                        <div class="choice-display hidden" id="result-choice-display">
+                            <p id="choice-comparison">Stone vs Paper</p>
+                        </div>
+                        <div id="result-display" class="result-display hidden">
+                            <h3 id="result-text">You Win!</h3>
+                        </div>
+                    </div>
+
+                    <!-- Player Hand (RIGHT) -->
+                    <div class="player-hand-section">
+                        <p class="side-label">You</p>
+                        <div class="hand-display" id="player-hand">✊</div>
+                    </div>
+                </div>
+
+                <!-- Play Again Button -->
+                <button id="play-again-btn" class="play-again-btn">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Game Stats -->
+        <div class="game-stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Rounds:</span>
+                <span class="stat-value" id="total-rounds">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Wins:</span>
+                <span class="stat-value" id="wins">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Losses:</span>
+                <span class="stat-value" id="losses">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Draws:</span>
+                <span class="stat-value" id="draws">0</span>
+            </div>
+        </div>
+
+        <!-- Reset Button -->
+        <button id="reset-btn" class="reset-btn">Reset Game</button>
+    </div>
+
+    <script>
+        const choices = ['stone', 'paper', 'scissors'];
+        let playerScore = 0;
+        let computerScore = 0;
+        let wins = 0;
+        let losses = 0;
+        let draws = 0;
+        let totalRounds = 0;
+        let gamePhase = 'choosing';
+
+        const choiceBtns = document.querySelectorAll('.choice-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        choiceBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (gamePhase === 'choosing') {
+                    playGame(btn.dataset.choice);
+                }
+            });
+        });
+
+        function getComputerChoice() {
+            return choices[Math.floor(Math.random() * choices.length)];
+        }
+
+        function determineWinner(player, computer) {
+            if (player === computer) {
+                return 'draw';
+            }
+            if (
+                (player === 'stone' && computer === 'scissors') ||
+                (player === 'paper' && computer === 'stone') ||
+                (player === 'scissors' && computer === 'paper')
+            ) {
+                return 'win';
+            }
+            return 'loss';
+        }
+
+        function getHandGesture(choice, isPlayer = true) {
+            const gestures = {
+                'stone': isPlayer ? '�' : '🤜',
+                'paper': '✋',
+                'scissors': '✌️'
+            };
+            return gestures[choice];
+        }
+
+        function getChoiceName(choice) {
+            return choice.charAt(0).toUpperCase() + choice.slice(1);
+        }
+
+        function playGame(playerChoice) {
+            const computerChoice = getComputerChoice();
+            const result = determineWinner(playerChoice, computerChoice);
+            totalRounds++;
+
+            // Disable choice buttons
+            gamePhase = 'revealing';
+            choiceBtns.forEach(btn => btn.disabled = true);
+
+            // Hide choice page, show result page
+            document.getElementById('choice-page').classList.remove('active');
+            document.getElementById('choice-page').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('hidden');
+            document.getElementById('result-page').classList.add('active');
+
+            // Show clenched fists and start bouncing
+            document.getElementById('player-hand').textContent = '✊';
+            document.getElementById('computer-hand').textContent = '✊';
+            document.getElementById('player-hand').classList.add('bouncing');
+            document.getElementById('computer-hand').classList.add('bouncing');
+
+            // After bouncing, shake as stone first
+            setTimeout(() => {
+                // Remove bouncing animation
+                document.getElementById('player-hand').classList.remove('bouncing');
+                document.getElementById('computer-hand').classList.remove('bouncing');
+                
+                // Add shaking animation while keeping clenched fist (stone position)
+                document.getElementById('player-hand').classList.add('shaking', 'right');
+                document.getElementById('computer-hand').classList.add('shaking');
+                
+                // After handshake completes, reveal actual gesture
+                setTimeout(() => {
+                    // Remove shaking animation
+                    document.getElementById('player-hand').classList.remove('shaking', 'right');
+                    document.getElementById('computer-hand').classList.remove('shaking');
+                    
+                    // Now reveal the actual hand gestures with animation
+                    document.getElementById('player-hand').classList.add('reveal-gesture');
+                    document.getElementById('computer-hand').classList.add('reveal-gesture');
+                    
+                    // Change text to actual gestures
+                    document.getElementById('player-hand').textContent = getHandGesture(playerChoice, true);
+                    document.getElementById('computer-hand').textContent = getHandGesture(computerChoice, false);
+                    
+                    // Show choice comparison and result
+                    setTimeout(() => {
+                        document.getElementById('result-choice-display').classList.remove('hidden');
+                        document.getElementById('result-display').classList.remove('hidden');
+
+                        // Show choice comparison in center
+                        document.getElementById('choice-comparison').innerHTML = `
+                            ${getChoiceName(playerChoice)} vs ${getChoiceName(computerChoice)}
+                        `;
+
+                        // Update scores
+                        if (result === 'win') {
+                            playerScore++;
+                            wins++;
+                            document.getElementById('result-text').textContent = `You Win! 🎉`;
+                            document.getElementById('result-text').className = 'win';
+                        } else if (result === 'loss') {
+                            computerScore++;
+                            losses++;
+                            document.getElementById('result-text').textContent = `Computer Wins! 🤖`;
+                            document.getElementById('result-text').className = 'loss';
+                        } else {
+                            draws++;
+                            document.getElementById('result-text').textContent = `It's a Draw! 🤝`;
+                            document.getElementById('result-text').className = 'draw';
+                        }
+
+                        // Update score display
+                        document.getElementById('total-rounds').textContent = totalRounds;
+                        document.getElementById('wins').textContent = wins;
+                        document.getElementById('losses').textContent = losses;
+                        document.getElementById('draws').textContent = draws;
+                    }, 500);
+                }, 1200); // After handshake animation completes
+            }, 1500);
+        }
+
+        playAgainBtn.addEventListener('click', () => {
+            // Reset page visibility
+            document.getElementById('result-page').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('active');
+            document.getElementById('choice-page').classList.remove('hidden');
+            document.getElementById('choice-page').classList.add('active');
+
+            // Reset hands
+            document.getElementById('player-hand').textContent = '✊';
+            document.getElementById('computer-hand').textContent = '✊';
+            document.getElementById('player-hand').classList.remove('reveal-gesture');
+            document.getElementById('computer-hand').classList.remove('reveal-gesture');
+
+            // Hide result displays
+            document.getElementById('result-choice-display').classList.add('hidden');
+            document.getElementById('result-display').classList.add('hidden');
+
+            // Reset buttons
+            gamePhase = 'choosing';
+            choiceBtns.forEach(btn => btn.disabled = false);
+        });
+
+        resetBtn.addEventListener('click', () => {
+            playerScore = 0;
+            computerScore = 0;
+            wins = 0;
+            losses = 0;
+            draws = 0;
+            totalRounds = 0;
+
+            document.getElementById('total-rounds').textContent = '0';
+            document.getElementById('wins').textContent = '0';
+            document.getElementById('losses').textContent = '0';
+            document.getElementById('draws').textContent = '0';
+
+            // Reset page visibility
+            document.getElementById('result-page').classList.add('hidden');
+            document.getElementById('result-page').classList.remove('active');
+            document.getElementById('choice-page').classList.remove('hidden');
+            document.getElementById('choice-page').classList.add('active');
+
+            // Reset hands
+            document.getElementById('player-hand').textContent = '✊';
+            document.getElementById('computer-hand').textContent = '✊';
+            document.getElementById('player-hand').classList.remove('reveal-gesture', 'shaking');
+            document.getElementById('computer-hand').classList.remove('reveal-gesture', 'shaking', 'right');
+
+            // Hide result displays
+            document.getElementById('result-choice-display').classList.add('hidden');
+            document.getElementById('result-display').classList.add('hidden');
+
+            // Reset buttons
+            gamePhase = 'choosing';
+            choiceBtns.forEach(btn => btn.disabled = false);
+        });
+    </script>
+</body>
+</html>
