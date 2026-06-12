@@ -26,9 +26,7 @@ SECRET_KEY = 'django-insecure-h5g_m=r8=e_f)&idcv_@3eb7!)_dr_i$r@1j#2xwtw=_$4a1o4
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "stone-paper-scissor-1.onrender.com",
-    "localhost",
-    "127.0.0.1",
+    ".onrender.com"
 ]
 
 
